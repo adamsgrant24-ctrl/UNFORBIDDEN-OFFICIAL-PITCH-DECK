@@ -1,27 +1,18 @@
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { createRoot } from 'react-dom/client';
 import { 
   ChevronLeft, 
   ChevronRight, 
-  Layout, 
-  Eye, 
-  Layers, 
-  Users, 
   TrendingUp, 
-  Settings, 
-  Cpu, 
   Volume2, 
   Briefcase, 
-  Globe, 
   Palette,
   Maximize,
   Minimize,
-  Download,
   AlertCircle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-// Fixed: Added GenerateContentResponse to imports for explicit typing
 import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
 
 // --- Types & Constants ---
@@ -64,7 +55,6 @@ async function fetchWithRetry<T>(
       const status = error?.status || error?.error?.status;
       const message = error?.message || error?.error?.message || "";
       
-      // Determine if error is retryable (429/Quota, 500/Internal, or Network/RPC errors)
       const isRetryable = 
         status === "RESOURCE_EXHAUSTED" || 
         status === 429 || 
@@ -188,9 +178,7 @@ const SlideBackground = ({ prompt, isActive }: { prompt: string; isActive: boole
         setLoading(true);
         setErrorStatus(null);
         try {
-          // Fixed: Guideline suggests creating a new instance right before making an API call
           const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-          // Fixed: Explicitly typed fetchWithRetry to resolve 'unknown' property access error
           const response = await fetchWithRetry<GenerateContentResponse>(() => 
             ai.models.generateContent({
               model: 'gemini-2.5-flash-image',
@@ -199,7 +187,6 @@ const SlideBackground = ({ prompt, isActive }: { prompt: string; isActive: boole
             })
           );
           
-          // Fixed: Safely find and extract image data from response candidates
           const candidate = response.candidates?.[0];
           const part = candidate?.content?.parts?.find(p => p.inlineData);
           
@@ -253,7 +240,6 @@ const SlideBackground = ({ prompt, isActive }: { prompt: string; isActive: boole
         )}
       </AnimatePresence>
       
-      {/* Aesthetic Overlays (Always present for graceful fallback) */}
       <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/70 to-transparent" />
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.6)_100%)]" />
       <div className="absolute top-0 left-0 w-full h-px bg-white/5" />
@@ -467,10 +453,8 @@ const PresentationApp = () => {
 
   return (
     <div className="relative w-full h-screen bg-[#050505] text-white overflow-hidden font-sans selection:bg-amber-500/30">
-      {/* Background with Motion and Robust Error Handling */}
       <SlideBackground prompt={currentSlideData.bgPrompt} isActive={true} />
 
-      {/* Header Info */}
       <div className="absolute top-0 left-0 w-full p-8 flex justify-between items-start z-10 pointer-events-none">
         <div className="flex items-center gap-4">
           <div className={`w-1 h-12 ${CATEGORY_COLORS[currentSlideData.category]} border-l-4 transition-colors duration-500`} />
@@ -485,7 +469,6 @@ const PresentationApp = () => {
         </div>
       </div>
 
-      {/* Main Content Area */}
       <div className="relative z-10 w-full h-full flex items-center justify-center p-8 md:p-24">
         <AnimatePresence mode="wait">
           <motion.div
@@ -515,7 +498,6 @@ const PresentationApp = () => {
         </AnimatePresence>
       </div>
 
-      {/* Controls Overlay */}
       <div className="absolute bottom-0 left-0 w-full p-8 flex justify-between items-end z-20">
         <div className="flex gap-2 bg-black/50 backdrop-blur-md p-1 rounded-full border border-white/10">
           {slides.map((_, i) => (
@@ -555,7 +537,6 @@ const PresentationApp = () => {
         </div>
       </div>
 
-      {/* Film Grain & Texture Overlay */}
       <div className="absolute inset-0 pointer-events-none z-50 opacity-[0.03] mix-blend-overlay bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
     </div>
   );
