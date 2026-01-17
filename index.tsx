@@ -22,16 +22,18 @@ import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
 
 // --- Types & Constants ---
 
-type SlideType = {
+type SlideCategory = 'VISION' | 'BLUEPRINT' | 'REVENUE' | 'METHODOLOGY' | 'TECHNICAL' | 'INVESTOR' | 'TITLE';
+
+interface SlideType {
   id: string;
   title: string;
   subtitle?: string;
   content: React.ReactNode;
   bgPrompt: string;
-  category: 'VISION' | 'BLUEPRINT' | 'REVENUE' | 'METHODOLOGY' | 'TECHNICAL' | 'INVESTOR' | 'TITLE';
-};
+  category: SlideCategory;
+}
 
-const CATEGORY_COLORS = {
+const CATEGORY_COLORS: Record<SlideCategory, string> = {
   TITLE: 'border-white',
   VISION: 'border-amber-500',
   BLUEPRINT: 'border-blue-400',
@@ -162,7 +164,6 @@ const SlideBackground: React.FC<SlideBackgroundProps> = ({ prompt, isActive }) =
   const [errorStatus, setErrorStatus] = useState<string | null>(null);
 
   const fetchImage = useCallback(async () => {
-    // Prevent multiple simultaneous fetches
     if (loading) return;
     
     setLoading(true);
@@ -467,7 +468,7 @@ const PresentationApp = () => {
 
   return (
     <div className="relative w-full h-screen bg-[#050505] text-white overflow-hidden font-sans selection:bg-amber-500/30">
-      {/* Background Layers - Key ensures proper reconciliation during slide changes */}
+      {/* Background Layers */}
       {slides.map((s, i) => (
         <SlideBackground key={s.id} prompt={s.bgPrompt} isActive={i === currentSlide} />
       ))}
