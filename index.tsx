@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
 import { 
@@ -152,23 +151,23 @@ const ActionCards = () => (
 
 // --- Background Renderer ---
 
-// Fixed SlideBackgroundProps by adding an optional key to satisfy TypeScript when used in lists
+// Added optional key property to SlideBackgroundProps to resolve TypeScript error in map() iteration
 interface SlideBackgroundProps {
-  key?: React.Key;
   prompt: string;
   isActive: boolean;
+  key?: React.Key;
 }
 
 const SlideBackground = ({ prompt, isActive }: SlideBackgroundProps) => {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [errorStatus, setErrorStatus] = useState<string | null>(null);
-  const fetchAttemptRef = useRef(0);
 
   const fetchImage = useCallback(async () => {
     setLoading(true);
     setErrorStatus(null);
     try {
+      // Create a new GoogleGenAI instance right before making an API call to ensure fresh key access
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       const response = await fetchWithRetry<GenerateContentResponse>(() => 
         ai.models.generateContent({
@@ -178,6 +177,7 @@ const SlideBackground = ({ prompt, isActive }: SlideBackgroundProps) => {
         })
       );
       
+      // Iterate through parts to find the image part (inlineData) as recommended
       const part = response.candidates?.[0]?.content?.parts?.find(p => p.inlineData);
       if (part?.inlineData) {
         setImageUrl(`data:image/png;base64,${part.inlineData.data}`);
@@ -213,7 +213,7 @@ const SlideBackground = ({ prompt, isActive }: SlideBackgroundProps) => {
             {loading && (
               <div className="flex flex-col items-center gap-4 opacity-40">
                 <div className="w-10 h-10 border border-white/20 border-t-white rounded-full animate-spin" />
-                <span className="text-[10px] tracking-[0.6em] uppercase font-mono">Developing Visual Language...</span>
+                <span className="text-[10px] tracking-[0.6em] uppercase font-mono text-white/60">Developing Visual Language...</span>
               </div>
             )}
             {errorStatus && isActive && (
@@ -454,8 +454,10 @@ const PresentationApp = () => {
       document.documentElement.requestFullscreen();
       setIsFullscreen(true);
     } else {
-      document.exitFullscreen();
-      setIsFullscreen(false);
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+        setIsFullscreen(false);
+      }
     }
   };
 
