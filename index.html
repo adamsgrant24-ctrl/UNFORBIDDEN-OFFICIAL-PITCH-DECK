@@ -15,6 +15,8 @@
             background-color: #050505;
             font-family: 'Inter', sans-serif;
             overflow: hidden;
+            color: white;
+            -webkit-font-smoothing: antialiased;
         }
         .font-mono {
             font-family: 'JetBrains Mono', monospace;
@@ -22,23 +24,53 @@
         ::-webkit-scrollbar {
             display: none;
         }
+        /* High-Performance Film Grain */
+        .film-grain::after {
+          content: "";
+          position: fixed;
+          top: -100%;
+          left: -100%;
+          width: 300%;
+          height: 300%;
+          background-image: url("https://grainy-gradients.vercel.app/noise.svg");
+          opacity: 0.04;
+          pointer-events: none;
+          z-index: 100;
+          animation: grain 8s steps(10) infinite;
+          mix-blend-mode: overlay;
+          will-change: transform;
+        }
+        @keyframes grain {
+          0%, 100% { transform:translate(0, 0); }
+          10% { transform:translate(-5%, -10%); }
+          20% { transform:translate(-15%, 5%); }
+          30% { transform:translate(7%, -25%); }
+          40% { transform:translate(-5%, 25%); }
+          50% { transform:translate(-15%, 10%); }
+          60% { transform:translate(15%, 0%); }
+          70% { transform:translate(0%, 15%); }
+          80% { transform:translate(3%, 35%); }
+          90% { transform:translate(-10%, 10%); }
+        }
     </style>
 <script type="importmap">
 {
   "imports": {
-    "react/": "https://esm.sh/react@^19.2.3/",
-    "react": "https://esm.sh/react@^19.2.3",
-    "@google/genai": "https://esm.sh/@google/genai@^1.36.0",
+    "react": "https://esm.sh/react@19.0.0",
+    "react-dom": "https://esm.sh/react-dom@19.0.0",
+    "react-dom/client": "https://esm.sh/react-dom@19.0.0/client",
+    "@google/genai": "https://esm.sh/@google/genai@0.2.1",
+    "lucide-react": "https://esm.sh/lucide-react@0.460.0",
+    "framer-motion": "https://esm.sh/framer-motion@11.11.17",
     "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
-    "lucide-react": "https://esm.sh/lucide-react@^0.562.0",
-    "framer-motion": "https://esm.sh/framer-motion@^12.26.2",
+    "react/": "https://esm.sh/react@^19.2.3/",
     "vite": "https://esm.sh/vite@^7.3.1",
     "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.2"
   }
 }
 </script>
 </head>
-<body>
+<body class="film-grain">
     <div id="root"></div>
     <script type="module" src="index.tsx"></script>
 </body>

@@ -1,29 +1,20 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { createRoot } from 'react-dom/client';
 import { 
   ChevronLeft, 
   ChevronRight, 
-  Layout, 
-  Eye, 
-  Layers, 
-  Users, 
   TrendingUp, 
-  Settings, 
-  Cpu, 
   Volume2, 
   Briefcase, 
-  Globe, 
   Palette,
   Maximize,
   Minimize,
-  Download
+  AlertCircle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GoogleGenAI } from "@google/genai";
 
 // --- Types & Constants ---
-
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 type SlideType = {
   id: string;
@@ -44,49 +35,32 @@ const CATEGORY_COLORS = {
   INVESTOR: 'border-purple-500'
 };
 
-// --- Mock Data & Content ---
+// --- Mock Data & Content Components ---
 
 const CastingTable = () => (
-  <div className="overflow-x-auto w-full mt-4">
-    <table className="w-full text-left text-sm border-collapse">
+  <div className="overflow-x-auto w-full mt-4 border border-white/10 rounded-sm">
+    <table className="w-full text-left text-xs md:text-sm border-collapse">
       <thead>
-        <tr className="border-b border-white/20 bg-white/5">
-          <th className="p-3 font-bold">Character</th>
-          <th className="p-3 font-bold">Casting Status</th>
-          <th className="p-3 font-bold">Function</th>
+        <tr className="border-b border-white/20 bg-white/5 uppercase tracking-widest text-[10px]">
+          <th className="p-4 opacity-50">Character</th>
+          <th className="p-4 opacity-50">Status</th>
+          <th className="p-4 opacity-50">Function</th>
         </tr>
       </thead>
       <tbody>
-        <tr className="border-b border-white/10">
-          <td className="p-3 font-semibold">Luke (Teboho Mzisa)</td>
-          <td className="p-3 text-emerald-400">Attached</td>
-          <td className="p-3 text-white/70">The Obsidian Shadow. Raw, visceral.</td>
-        </tr>
-        <tr className="border-b border-white/10">
-          <td className="p-3 font-semibold">The Anchor (Annette Miller)</td>
-          <td className="p-3 text-emerald-400">Attached</td>
-          <td className="p-3 text-white/70">Architect of Wisdom. Bridge to truth.</td>
-        </tr>
-        <tr className="border-b border-white/10">
-          <td className="p-3 font-semibold">The Mother (Pamela Nomvete)</td>
-          <td className="p-3 text-amber-400">Offer Pending</td>
-          <td className="p-3 text-white/70">The Gatekeeper. Sterile power.</td>
-        </tr>
-        <tr className="border-b border-white/10">
-          <td className="p-3 font-semibold">Zola (Nefisa Mkhabela)</td>
-          <td className="p-3 text-amber-400">Offer Pending</td>
-          <td className="p-3 text-white/70">The Mirror. Gilded cage success.</td>
-        </tr>
-        <tr className="border-b border-white/10">
-          <td className="p-3 font-semibold">The Critic (John Kani)</td>
-          <td className="p-3 text-amber-400">Offer Pending</td>
-          <td className="p-3 text-white/70">The Labeler. Academic subtext.</td>
-        </tr>
-        <tr className="border-b border-white/10">
-          <td className="p-3 font-semibold">The Patron (Ian Roberts)</td>
-          <td className="p-3 text-amber-400">Offer Pending</td>
-          <td className="p-3 text-white/70">Commodity Consumer. Polished old money.</td>
-        </tr>
+        {[
+          { name: "Luke (Teboho Mzisa)", status: "Attached", fn: "The Obsidian Shadow. Raw, visceral." },
+          { name: "The Anchor (Annette Miller)", status: "Attached", fn: "Architect of Wisdom. Bridge to truth." },
+          { name: "The Mother (Pamela Nomvete)", status: "Offer Pending", fn: "The Gatekeeper. Sterile power." },
+          { name: "Zola (Nefisa Mkhabela)", status: "Offer Pending", fn: "The Mirror. Gilded cage success." },
+          { name: "The Critic (John Kani)", status: "Offer Pending", fn: "The Labeler. Academic subtext." }
+        ].map((char, i) => (
+          <tr key={i} className="border-b border-white/5 hover:bg-white/5 transition-colors">
+            <td className="p-4 font-bold">{char.name}</td>
+            <td className={`p-4 ${char.status === 'Attached' ? 'text-emerald-400' : 'text-amber-400 opacity-80'}`}>{char.status}</td>
+            <td className="p-4 text-white/50">{char.fn}</td>
+          </tr>
+        ))}
       </tbody>
     </table>
   </div>
@@ -99,16 +73,16 @@ const Roadmap = () => (
       { phase: "II: Resistance", budget: "R2.5M - R5M", goal: "Intl Co-production (CT & London)" },
       { phase: "III: The Legacy", budget: "R10M+", goal: "Global Streaming (Netflix/A24)" }
     ].map((step, i) => (
-      <div key={i} className="flex items-center gap-4 group">
-        <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center font-bold group-hover:bg-white/20 transition-all border border-white/20">
+      <div key={i} className="flex items-center gap-6 group">
+        <div className="w-12 h-12 rounded-sm bg-white/5 flex items-center justify-center font-mono text-lg border border-white/10 group-hover:bg-white/10 transition-all">
           0{i+1}
         </div>
-        <div className="flex-1 bg-black/40 p-4 rounded-lg border-l-2 border-white/30 backdrop-blur-md">
+        <div className="flex-1 bg-white/5 p-6 rounded-sm border-l-2 border-white/20 backdrop-blur-md">
           <div className="flex justify-between items-center mb-1">
-            <h4 className="font-bold text-lg">{step.phase}</h4>
-            <span className="text-sm opacity-60 font-mono">{step.budget}</span>
+            <h4 className="font-bold text-lg tracking-tight">{step.phase}</h4>
+            <span className="text-xs opacity-40 font-mono tracking-tighter uppercase">{step.budget}</span>
           </div>
-          <p className="text-white/70 text-sm">Goal: {step.goal}</p>
+          <p className="text-white/40 text-xs uppercase tracking-widest leading-loose">{step.goal}</p>
         </div>
       </div>
     ))}
@@ -124,69 +98,83 @@ const ActionCards = () => (
       { title: "TO LABEL", role: "The Critic", desc: "Categorize and strip power via academic subtext." },
       { title: "TO COMMODIFY", role: "The Patron", desc: "Hunt for investment, check specimen for 'quality'." }
     ].map((card, i) => (
-      <div key={i} className="p-4 bg-white/5 border border-white/10 rounded-sm hover:border-white/40 transition-all">
-        <div className="text-xs opacity-50 mb-1">{card.role}</div>
-        <div className="text-xl font-bold tracking-tighter mb-2 underline decoration-white/20 underline-offset-4">{card.title}</div>
-        <p className="text-sm text-white/60">{card.desc}</p>
+      <div key={i} className="p-6 bg-white/5 border border-white/10 rounded-sm hover:border-white/30 transition-all group">
+        <div className="text-[10px] font-mono opacity-30 mb-2 uppercase tracking-[0.3em]">{card.role}</div>
+        <div className="text-xl font-black tracking-tighter mb-4 underline decoration-white/10 underline-offset-8 group-hover:decoration-white/30 transition-all">{card.title}</div>
+        <p className="text-xs text-white/50 leading-relaxed uppercase tracking-wider">{card.desc}</p>
       </div>
     ))}
   </div>
 );
 
-// --- Components ---
+// --- Background Component ---
 
 const SlideBackground = ({ prompt, isActive }: { prompt: string; isActive: boolean }) => {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
+    let isMounted = true;
     if (isActive && !imageUrl && !loading) {
       const fetchImage = async () => {
         setLoading(true);
+        setError(false);
         try {
+          const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
           const response = await ai.models.generateContent({
             model: 'gemini-2.5-flash-image',
-            contents: { parts: [{ text: `Cinematic architectural noir film still, 35mm anamorphic. ${prompt}. Moody lighting, high contrast, obsidian black and turpentine amber tones, high prestige aesthetic.` }] },
+            contents: { parts: [{ text: `High-prestige cinematic film still, 35mm anamorphic. ${prompt}. High-end architectural noir, brutalist concrete, moody lighting, obsidian black and turpentine amber accents, Kodak Vision3 500T aesthetic.` }] },
             config: { imageConfig: { aspectRatio: "16:9" } },
           });
           
-          for (const part of response.candidates[0].content.parts) {
-            if (part.inlineData) {
-              setImageUrl(`data:image/png;base64,${part.inlineData.data}`);
-              break;
-            }
+          const imageData = response.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.data;
+          if (imageData && isMounted) {
+            setImageUrl(`data:image/png;base64,${imageData}`);
           }
-        } catch (error) {
-          console.error("Failed to generate background:", error);
+        } catch (err) {
+          console.error("Asset generation failed:", err);
+          if (isMounted) setError(true);
         } finally {
-          setLoading(false);
+          if (isMounted) setLoading(false);
         }
       };
       fetchImage();
     }
+    return () => { isMounted = false; };
   }, [isActive, prompt, imageUrl, loading]);
 
   return (
-    <div className="absolute inset-0 overflow-hidden z-0">
+    <div className="absolute inset-0 overflow-hidden z-0 bg-[#050505]">
       <AnimatePresence>
         {imageUrl ? (
           <motion.img
             initial={{ scale: 1.1, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
+            animate={{ scale: 1, opacity: 0.5 }}
+            exit={{ opacity: 0 }}
             src={imageUrl}
             className="w-full h-full object-cover"
           />
         ) : (
-          <div className="w-full h-full bg-[#0a0a0a] flex items-center justify-center">
-            <div className="w-8 h-8 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+          <div className="w-full h-full flex flex-col items-center justify-center gap-4 opacity-20">
+            {loading ? (
+              <>
+                <div className="w-8 h-8 border-2 border-white/10 border-t-white rounded-full animate-spin" />
+                <span className="text-[10px] font-mono tracking-[0.5em] uppercase">Rendering Narrative Space...</span>
+              </>
+            ) : error && isActive ? (
+              <AlertCircle size={32} className="text-white/20" />
+            ) : null}
           </div>
         )}
       </AnimatePresence>
-      <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/70 to-[#0a0a0a]/40" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(0,0,0,0.4)_100%)]" />
+      <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-transparent to-[#050505]/40" />
+      <div className="absolute inset-0 bg-black/20 mix-blend-multiply" />
     </div>
   );
 };
+
+// --- Main Application ---
 
 const PresentationApp = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -198,14 +186,14 @@ const PresentationApp = () => {
       category: 'TITLE',
       title: 'UNFORBIDDEN',
       subtitle: 'PART I: THE AWAKENING | A TRILOGY',
-      bgPrompt: 'High-art geometry of a glass-and-steel modern museum at night, clinical distance.',
+      bgPrompt: 'High-art geometry of a glass-and-steel modern museum at night, clinical distance, moonlight shadows.',
       content: (
-        <div className="mt-12 space-y-2 text-center">
-          <h3 className="text-xl tracking-[0.3em] font-light opacity-80 uppercase">The Architectural Prospectus</h3>
-          <p className="text-sm tracking-widest opacity-50">Transcendental Audit of the Invincible Prison</p>
-          <div className="pt-24 space-y-1">
-            <p className="font-bold tracking-widest">BY AZA-KHEM</p>
-            <p className="text-xs opacity-50 font-mono">azakhem26@gmail.com | 073628530</p>
+        <div className="mt-16 space-y-4 text-center">
+          <h3 className="text-xl tracking-[0.6em] font-light opacity-60 uppercase">The Architectural Prospectus</h3>
+          <p className="text-[10px] tracking-[0.8em] opacity-30 uppercase font-mono">Transcendental Audit of the Invincible Prison</p>
+          <div className="pt-40 space-y-2">
+            <p className="font-black tracking-[1em] text-sm uppercase">BY AZA-KHEM</p>
+            <p className="text-[10px] opacity-40 font-mono uppercase tracking-[0.2em]">Portfolio 2026-2030 | Confidential</p>
           </div>
         </div>
       )
@@ -215,28 +203,26 @@ const PresentationApp = () => {
       category: 'VISION',
       title: 'THE VISION',
       subtitle: 'The Transcendental Audit',
-      bgPrompt: 'A close up of raw thick turpentine paint mixed with charcoal on a white canvas in a gritty Woodstock studio.',
+      bgPrompt: 'Macro shot of raw turpentine paint mixed with charcoal on a white canvas in a gritty minimalist studio.',
       content: (
-        <div className="max-w-2xl space-y-6">
-          <p className="text-2xl leading-relaxed font-light italic text-white/90">
+        <div className="max-w-3xl space-y-12">
+          <p className="text-3xl md:text-5xl leading-tight font-light italic text-white/90 border-l border-white/10 pl-12 py-2">
             "I am not merely directing a movie; I am conducting a creative audit of the human soul."
           </p>
-          <p className="text-white/70">
-            Exploring the profound friction between the Vanguard Collective—sterile glass-and-steel—and the Unfettered Truth of raw authenticity.
+          <p className="text-sm uppercase tracking-[0.3em] leading-loose text-white/50">
+            Exploring the terminal friction between the <span className="text-white font-bold">Vanguard Collective</span>—sterile glass-and-steel—and the <span className="text-amber-500 font-bold">Unfettered Truth</span> of raw biological authenticity.
           </p>
-          <div className="grid grid-cols-3 gap-4 pt-4">
-            <div className="border-l border-white/20 pl-4">
-              <span className="text-xs uppercase opacity-50">Focus</span>
-              <p className="text-sm font-bold">The Awakening</p>
-            </div>
-            <div className="border-l border-white/20 pl-4">
-              <span className="text-xs uppercase opacity-50">Conflict</span>
-              <p className="text-sm font-bold">Architectural vs Biological</p>
-            </div>
-            <div className="border-l border-white/20 pl-4">
-              <span className="text-xs uppercase opacity-50">Goal</span>
-              <p className="text-sm font-bold">Unforbidden Truth</p>
-            </div>
+          <div className="grid grid-cols-3 gap-12 pt-8 border-t border-white/5">
+            {[
+              { label: 'Phase', val: 'The Awakening' },
+              { label: 'Conflict', val: 'Architectural vs Biological' },
+              { label: 'Core Goal', val: 'Unforbidden Truth' }
+            ].map((stat, i) => (
+              <div key={i} className="space-y-2">
+                <span className="text-[10px] uppercase opacity-30 font-mono tracking-widest">{stat.label}</span>
+                <p className="text-xs font-black uppercase tracking-tight">{stat.val}</p>
+              </div>
+            ))}
           </div>
         </div>
       )
@@ -245,16 +231,12 @@ const PresentationApp = () => {
       id: 'blueprint',
       category: 'BLUEPRINT',
       title: 'THE MASTER BLUEPRINT',
-      bgPrompt: '35mm anamorphic wide shot of a modern gallery with Luke standing as a dark silhouette against a massive empty frame.',
+      bgPrompt: 'Wide shot of a modern gallery with a dark silhouette figure standing against an empty frame.',
       content: (
-        <div className="space-y-8">
-          <div>
-            <span className="text-xs font-mono opacity-50 uppercase tracking-widest">Logline</span>
-            <p className="text-2xl font-bold tracking-tight">To find the "unforbidden" truth in his art, a rising painter must dismantle the glass-and-steel legacy of his mother’s empire.</p>
-          </div>
-          <div>
-            <span className="text-xs font-mono opacity-50 uppercase tracking-widest">Tagline</span>
-            <p className="text-lg italic text-amber-400">"Truth is the only masterpiece that cannot be owned."</p>
+        <div className="space-y-12">
+          <div className="space-y-4">
+            <span className="text-[10px] font-mono opacity-30 uppercase tracking-[0.4em]">Narrative Foundation</span>
+            <p className="text-3xl font-black tracking-tight max-w-4xl leading-snug">To find the "unforbidden" truth in his art, a rising painter must dismantle the glass-and-steel legacy of his mother’s empire.</p>
           </div>
           <CastingTable />
         </div>
@@ -264,10 +246,12 @@ const PresentationApp = () => {
       id: 'roadmap',
       category: 'BLUEPRINT',
       title: 'TRILOGY ROADMAP',
-      bgPrompt: 'Clinical overhead shot of a glass table with architectural blueprints and 35mm film strips.',
+      bgPrompt: 'Overhead shot of a glass table with architectural blueprints and vintage film canisters.',
       content: (
-        <div className="space-y-4">
-          <p className="text-white/60 max-w-lg">Designed for scalability and international reach, moving from local pulse to global event status.</p>
+        <div className="space-y-6">
+          <p className="text-white/40 max-w-xl text-xs uppercase tracking-[0.4em] leading-loose">
+            Designed for scalability and prestige reach, moving from raw local pulse to a global streaming event status.
+          </p>
           <Roadmap />
         </div>
       )
@@ -276,21 +260,25 @@ const PresentationApp = () => {
       id: 'revenue',
       category: 'REVENUE',
       title: 'REVENUE ARCHITECTURE',
-      bgPrompt: 'High-end art gallery with red "sold" stickers next to dark obsidian landscape paintings.',
+      bgPrompt: 'Macro shot of dark obsidian landscape paintings with red sold stickers in a high-end gallery.',
       content: (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <div className="space-y-4">
-            <h4 className="text-xl font-bold border-b border-white/20 pb-2">The Aza-Khem Collection</h4>
-            <p className="text-sm text-white/70">Unlike typical films, the art created within UNFORBIDDEN is a tangible asset. High-value original works used as props will be auctioned post-premiere for immediate ROI.</p>
-            <div className="bg-white/5 p-4 rounded border border-white/10">
-              <span className="text-xs font-mono text-emerald-400">Gallery-First Exit Strategy</span>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-20">
+          <div className="space-y-8 group">
+            <h4 className="text-xs font-black tracking-[0.6em] uppercase border-b border-white/10 pb-6 group-hover:border-emerald-500/50 transition-colors">The Aza-Khem Asset</h4>
+            <p className="text-sm text-white/50 leading-relaxed uppercase tracking-widest">
+              The art created within UNFORBIDDEN is a tangible investment. High-value original works used as props will be auctioned post-premiere for immediate ROI.
+            </p>
+            <div className="inline-flex bg-white/5 px-6 py-3 rounded-sm border border-emerald-500/20 text-[10px] font-mono text-emerald-400">
+              GALLERY-FIRST STRATEGY
             </div>
           </div>
-          <div className="space-y-4">
-            <h4 className="text-xl font-bold border-b border-white/20 pb-2">Franchise Lensing</h4>
-            <p className="text-sm text-white/70">International "Vanguard" pillars (John Kani, Ian Roberts) allow sales agents to secure Minimum Guarantees in US/EU markets before completion.</p>
-            <div className="bg-white/5 p-4 rounded border border-white/10">
-              <span className="text-xs font-mono text-blue-400">A24 / NEON Model Synergy</span>
+          <div className="space-y-8 group">
+            <h4 className="text-xs font-black tracking-[0.6em] uppercase border-b border-white/10 pb-6 group-hover:border-blue-500/50 transition-colors">Franchise Lensing</h4>
+            <p className="text-sm text-white/50 leading-relaxed uppercase tracking-widest">
+              A meticulously curated cast of international icons allows pre-sales in major territories under the proven prestige-indie synergy model.
+            </p>
+            <div className="inline-flex bg-white/5 px-6 py-3 rounded-sm border border-blue-500/20 text-[10px] font-mono text-blue-400">
+              A24 / SEARCHLIGHT SYNERGY
             </div>
           </div>
         </div>
@@ -299,14 +287,16 @@ const PresentationApp = () => {
     {
       id: 'methodology',
       category: 'METHODOLOGY',
-      title: 'THE ACTION CARD SYSTEM',
-      bgPrompt: 'Intimate handheld 35mm shot of two actors in a heated confrontation, sweat and raw emotion visible.',
+      title: 'ACTION CARD SYSTEM',
+      bgPrompt: 'Close up profile of an actor with sweat and intense focus, cinematic 35mm texture.',
       content: (
-        <div className="space-y-4">
-          <div className="flex gap-4 items-center">
-            <div className="bg-red-500/20 text-red-400 px-3 py-1 rounded-full text-xs font-bold border border-red-500/50">Technical Mastery vs Raw Impulse</div>
+        <div className="space-y-8">
+          <div className="inline-block bg-red-500/10 text-red-400 px-6 py-2 rounded-sm text-[10px] font-bold border border-red-500/30 uppercase tracking-[0.4em]">
+            Precision vs Raw Visceral Impulse
           </div>
-          <p className="text-white/70 max-w-2xl">Bypassing the "rehearsed" to reach the "real." Seasoned precision (John Kani, Annette Miller) pitted against raw, unpredictable energy (Teboho Mzisa).</p>
+          <p className="text-white/40 max-w-2xl text-xs uppercase tracking-[0.3em] leading-loose">
+            Bypassing the "rehearsed" to extract screen truth. Seasoned technical mastery pitted against raw, unpredictable human energy.
+          </p>
           <ActionCards />
         </div>
       )
@@ -315,21 +305,22 @@ const PresentationApp = () => {
       id: 'technical',
       category: 'TECHNICAL',
       title: 'TECHNICAL TREATMENT',
-      bgPrompt: 'Cinematic wide shot showing the contrast between the sterile Norval Foundation and a cluttered Woodstock studio.',
+      bgPrompt: 'Contrast shot between sterile clinical lab lighting and warm amber studio sparks.',
       content: (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="space-y-3">
-            <div className="flex items-center gap-2"><Maximize className="w-4 h-4 text-white/50" /><span className="text-xs uppercase font-bold">Lensing</span></div>
-            <p className="text-sm text-white/60">35mm Anamorphic. Clinical/Symmetrical for the Elite world. Tight/Handheld/Dirty for the Artist's studio.</p>
-          </div>
-          <div className="space-y-3">
-            <div className="flex items-center gap-2"><Palette className="w-4 h-4 text-white/50" /><span className="text-xs uppercase font-bold">Palette</span></div>
-            <p className="text-sm text-white/60">Transition from Sterile White/Glass Blue to Turpentine Amber and Obsidian Black.</p>
-          </div>
-          <div className="space-y-3">
-            <div className="flex items-center gap-2"><Volume2 className="w-4 h-4 text-white/50" /><span className="text-xs uppercase font-bold">Sonic</span></div>
-            <p className="text-sm text-white/60">Sharp minimalist echoes vs heavy breathing and low-frequency ambient "heat".</p>
-          </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-16">
+          {[
+            { icon: <Maximize size={18} />, title: "Lensing", desc: "35mm Anamorphic. Clinical symmetry for the collective vs Visceral handheld for the studio." },
+            { icon: <Palette size={18} />, title: "Palette", desc: "Transition from Sterile Museum White to raw Turpentine Amber and Obsidian Black." },
+            { icon: <Volume2 size={18} />, title: "Sonic", desc: "Minimalist concrete echoes vs high-fidelity organic noise and heavy low-frequency pulses." }
+          ].map((item, i) => (
+            <div key={i} className="space-y-6 group">
+              <div className="flex items-center gap-4 opacity-40 group-hover:opacity-100 transition-opacity">
+                {item.icon}
+                <span className="text-[10px] uppercase font-bold tracking-[0.6em]">{item.title}</span>
+              </div>
+              <p className="text-xs text-white/40 uppercase leading-loose tracking-wider border-l border-white/5 pl-6">{item.desc}</p>
+            </div>
+          ))}
         </div>
       )
     },
@@ -337,29 +328,29 @@ const PresentationApp = () => {
       id: 'investor',
       category: 'INVESTOR',
       title: 'INVESTOR BRIEF',
-      bgPrompt: 'Silhouette of a figure in a high-rise office overlooking a city at dusk, cinematic blue hour.',
+      bgPrompt: 'Silhouette of a figure in a tailored suit in a high-rise office at twilight, cityscape bokeh.',
       content: (
-        <div className="space-y-6">
-          <div className="grid grid-cols-2 gap-8">
-            <div className="bg-white/5 p-6 rounded-lg border border-white/10 space-y-4">
-              <h5 className="font-bold flex items-center gap-2"><TrendingUp className="w-4 h-4 text-emerald-400" /> Value Proposition</h5>
-              <ul className="text-sm space-y-2 text-white/70 list-disc list-inside">
-                <li>25% DTI Rebate utilization</li>
-                <li>Prestige-Genre Hybrid (Moonlight/Parasite model)</li>
-                <li>40% growth in elevated drama demand</li>
+        <div className="space-y-20">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+            <div className="bg-white/5 p-12 rounded-sm border border-white/5 space-y-8 backdrop-blur-2xl hover:bg-white/10 transition-colors">
+              <h5 className="font-bold flex items-center gap-4 text-xs tracking-[0.5em] uppercase opacity-70"><TrendingUp size={16} className="text-emerald-400" /> Strategic Value</h5>
+              <ul className="text-[10px] space-y-6 text-white/40 uppercase tracking-[0.3em] font-light">
+                <li className="flex items-center gap-4"><div className="w-1.5 h-1.5 bg-emerald-500/50 rounded-full" /> 25% DTI Rebate Qualification</li>
+                <li className="flex items-center gap-4"><div className="w-1.5 h-1.5 bg-emerald-500/50 rounded-full" /> Tier-1 Film Festival Pipeline</li>
+                <li className="flex items-center gap-4"><div className="w-1.5 h-1.5 bg-emerald-500/50 rounded-full" /> Global SVOD Premium License</li>
               </ul>
             </div>
-            <div className="bg-white/5 p-6 rounded-lg border border-white/10 space-y-4">
-              <h5 className="font-bold flex items-center gap-2"><Briefcase className="w-4 h-4 text-blue-400" /> Exit Strategy</h5>
-              <ul className="text-sm space-y-2 text-white/70 list-disc list-inside">
-                <li>SVOD Buy-out (Netflix/MUBI) post-festival</li>
-                <li>Physical Art Auction (Tier 2 Revenue)</li>
-                <li>Equity Buy-back options for seed investors</li>
+            <div className="bg-white/5 p-12 rounded-sm border border-white/5 space-y-8 backdrop-blur-2xl hover:bg-white/10 transition-colors">
+              <h5 className="font-bold flex items-center gap-4 text-xs tracking-[0.5em] uppercase opacity-70"><Briefcase size={16} className="text-blue-400" /> Exit Strategy</h5>
+              <ul className="text-[10px] space-y-6 text-white/40 uppercase tracking-[0.3em] font-light">
+                <li className="flex items-center gap-4"><div className="w-1.5 h-1.5 bg-blue-500/50 rounded-full" /> Market Buy-out (A24/Neon)</li>
+                <li className="flex items-center gap-4"><div className="w-1.5 h-1.5 bg-blue-500/50 rounded-full" /> Physical Art Secondary Gains</li>
+                <li className="flex items-center gap-4"><div className="w-1.5 h-1.5 bg-blue-500/50 rounded-full" /> Equity Buy-back Participation</li>
               </ul>
             </div>
           </div>
-          <div className="text-center pt-8 border-t border-white/10">
-            <p className="text-xs uppercase tracking-[0.5em] opacity-50">Confidential Investor Brief | 2026-2030</p>
+          <div className="text-center pt-8 border-t border-white/5 opacity-20">
+            <p className="text-[10px] uppercase tracking-[1em] font-mono">Confidential Prospectus | 2026-2027</p>
           </div>
         </div>
       )
@@ -371,9 +362,9 @@ const PresentationApp = () => {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowRight') nextSlide();
+      if (e.key === 'ArrowRight' || e.key === ' ') nextSlide();
       if (e.key === 'ArrowLeft') prevSlide();
-      if (e.key === 'f') toggleFullscreen();
+      if (e.key.toLowerCase() === 'f') toggleFullscreen();
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
@@ -384,8 +375,10 @@ const PresentationApp = () => {
       document.documentElement.requestFullscreen();
       setIsFullscreen(true);
     } else {
-      document.exitFullscreen();
-      setIsFullscreen(false);
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+        setIsFullscreen(false);
+      }
     }
   };
 
@@ -393,101 +386,110 @@ const PresentationApp = () => {
 
   return (
     <div className="relative w-full h-screen bg-[#050505] text-white overflow-hidden font-sans selection:bg-amber-500/30">
-      {/* Background with Motion */}
-      <SlideBackground prompt={currentSlideData.bgPrompt} isActive={true} />
+      {/* Background Layers */}
+      {slides.map((s, i) => (
+        <SlideBackground key={s.id} prompt={s.bgPrompt} isActive={i === currentSlide} />
+      ))}
 
-      {/* Header Info */}
-      <div className="absolute top-0 left-0 w-full p-8 flex justify-between items-start z-10 pointer-events-none">
-        <div className="flex items-center gap-4">
-          <div className={`w-1 h-12 ${CATEGORY_COLORS[currentSlideData.category]} border-l-4 transition-colors duration-500`} />
-          <div>
-            <div className="text-[10px] tracking-[0.3em] font-mono opacity-50 uppercase">{currentSlideData.category}</div>
-            <div className="text-xl font-black tracking-tighter">UNFORBIDDEN</div>
+      {/* Navigation Overlay */}
+      <div className="absolute top-0 left-0 w-full p-12 md:p-20 flex justify-between items-start z-50 pointer-events-none">
+        <div className="flex items-center gap-12">
+          <div className={`w-1 h-24 ${CATEGORY_COLORS[currentSlideData.category]} border-l-4 transition-all duration-1000 shadow-[0_0_30px_rgba(255,255,255,0.05)]`} />
+          <div className="space-y-2">
+            <motion.div 
+              key={`cat-${currentSlide}`}
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 0.4, x: 0 }}
+              className="text-[12px] tracking-[0.8em] font-mono uppercase"
+            >
+              {currentSlideData.category}
+            </motion.div>
+            <div className="text-4xl font-black tracking-tighter uppercase leading-none">UNFORBIDDEN</div>
           </div>
         </div>
-        <div className="text-[10px] font-mono opacity-50 text-right">
+        <div className="text-[10px] font-mono opacity-20 text-right tracking-[0.5em] uppercase leading-loose">
           PAGE {(currentSlide + 1).toString().padStart(2, '0')} / {slides.length.toString().padStart(2, '0')}<br />
-          CPT | LON | NYC
+          CAPE TOWN | LONDON | NYC
         </div>
       </div>
 
-      {/* Main Content Area */}
-      <div className="relative z-10 w-full h-full flex items-center justify-center p-8 md:p-24">
+      {/* Primary Slide Content */}
+      <div className="relative z-10 w-full h-full flex items-center justify-center p-12 md:p-40 overflow-y-auto">
         <AnimatePresence mode="wait">
           <motion.div
             key={currentSlide}
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-            className="w-full max-w-6xl"
+            initial={{ opacity: 0, x: 30, filter: 'brightness(2)' }}
+            animate={{ opacity: 1, x: 0, filter: 'brightness(1)' }}
+            exit={{ opacity: 0, x: -30, filter: 'brightness(0)' }}
+            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+            className="w-full max-w-7xl pt-12"
           >
             {currentSlideData.subtitle && (
               <motion.span 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 0.5 }}
-                className="text-xs md:text-sm font-mono tracking-[0.4em] uppercase mb-2 block"
+                initial={{ opacity: 0, letterSpacing: '1.5em' }}
+                animate={{ opacity: 0.4, letterSpacing: '0.8em' }}
+                className="text-[11px] font-mono uppercase mb-10 block"
               >
                 {currentSlideData.subtitle}
               </motion.span>
             )}
-            <h1 className={`text-4xl md:text-7xl font-black tracking-tighter leading-none mb-8 ${currentSlide === 0 ? 'text-center' : ''}`}>
+            <h1 className={`text-5xl md:text-[8rem] font-black tracking-tighter leading-[0.85] mb-20 uppercase ${currentSlide === 0 ? 'text-center' : ''}`}>
               {currentSlideData.title}
             </h1>
-            <div className={`transition-all duration-700 delay-300 ${currentSlide === 0 ? 'flex justify-center' : ''}`}>
+            <div className={`transition-all duration-1000 ${currentSlide === 0 ? 'flex justify-center' : ''}`}>
               {currentSlideData.content}
             </div>
           </motion.div>
         </AnimatePresence>
       </div>
 
-      {/* Controls Overlay */}
-      <div className="absolute bottom-0 left-0 w-full p-8 flex justify-between items-end z-20">
-        <div className="flex gap-2 bg-black/50 backdrop-blur-md p-1 rounded-full border border-white/10">
+      {/* Global Controls */}
+      <div className="absolute bottom-0 left-0 w-full p-12 md:p-20 flex justify-between items-end z-50">
+        <div className="flex gap-4 items-center bg-white/5 backdrop-blur-3xl px-10 py-5 rounded-full border border-white/5 shadow-2xl">
           {slides.map((_, i) => (
             <button
               key={i}
               onClick={() => setCurrentSlide(i)}
-              className={`w-2 h-2 rounded-full transition-all ${i === currentSlide ? 'bg-white w-6' : 'bg-white/20 hover:bg-white/40'}`}
+              className={`w-1.5 h-1.5 rounded-full transition-all duration-700 ${i === currentSlide ? 'bg-white w-8 shadow-[0_0_15px_white]' : 'bg-white/10 hover:bg-white/30'}`}
               title={`Slide ${i + 1}`}
             />
           ))}
         </div>
 
-        <div className="flex items-center gap-4">
-          <button 
-            onClick={prevSlide}
-            disabled={currentSlide === 0}
-            className="p-3 bg-white/10 hover:bg-white/20 disabled:opacity-20 rounded-full transition-all border border-white/10"
-          >
-            <ChevronLeft size={20} />
-          </button>
-          <button 
-            onClick={nextSlide}
-            disabled={currentSlide === slides.length - 1}
-            className="p-3 bg-white/10 hover:bg-white/20 disabled:opacity-20 rounded-full transition-all border border-white/10"
-          >
-            <ChevronRight size={20} />
-          </button>
+        <div className="flex items-center gap-10">
+          <div className="flex gap-3">
+            <button 
+              onClick={prevSlide}
+              disabled={currentSlide === 0}
+              className="p-6 bg-white/5 hover:bg-white/10 disabled:opacity-0 rounded-full transition-all border border-white/5 active:scale-90 backdrop-blur-md"
+            >
+              <ChevronLeft size={24} />
+            </button>
+            <button 
+              onClick={nextSlide}
+              disabled={currentSlide === slides.length - 1}
+              className="p-6 bg-white/5 hover:bg-white/10 disabled:opacity-0 rounded-full transition-all border border-white/5 active:scale-90 backdrop-blur-md"
+            >
+              <ChevronRight size={24} />
+            </button>
+          </div>
           
-          <div className="w-px h-8 bg-white/10 mx-2" />
+          <div className="w-px h-16 bg-white/5 mx-2" />
           
           <button 
             onClick={toggleFullscreen}
-            className="p-3 bg-white/5 hover:bg-white/10 rounded-full transition-all"
+            className="p-6 bg-white/5 hover:bg-white/10 rounded-full transition-all border border-white/5 opacity-40 hover:opacity-100 active:scale-90 backdrop-blur-md"
+            title="Toggle Cinema Mode (F)"
           >
-            {isFullscreen ? <Minimize size={20} /> : <Maximize size={20} />}
+            {isFullscreen ? <Minimize size={24} /> : <Maximize size={24} />}
           </button>
         </div>
       </div>
-
-      {/* Film Grain & Texture Overlay */}
-      <div className="absolute inset-0 pointer-events-none z-50 opacity-[0.03] mix-blend-overlay bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
     </div>
   );
 };
 
-// --- Initial Render ---
+// --- App Boostrap ---
 
 const container = document.getElementById('root');
 if (container) {
