@@ -16,6 +16,7 @@
             font-family: 'Inter', sans-serif;
             overflow: hidden;
             -webkit-font-smoothing: antialiased;
+            color: white;
         }
         .font-mono {
             font-family: 'JetBrains Mono', monospace;
@@ -23,7 +24,7 @@
         ::-webkit-scrollbar {
             display: none;
         }
-        /* Cinematic Film Grain Overlay - Optimized for production */
+        /* Cinematic Film Grain Overlay - Uses hardware acceleration */
         .film-grain::after {
           content: "";
           position: fixed;
@@ -37,6 +38,7 @@
           z-index: 100;
           animation: grain 8s steps(10) infinite;
           mix-blend-mode: overlay;
+          will-change: transform;
         }
         @keyframes grain {
           0%, 100% { transform:translate(0, 0); }

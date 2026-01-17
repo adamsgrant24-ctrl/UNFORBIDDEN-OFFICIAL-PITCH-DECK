@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import { createRoot } from 'react-dom/client';
 import { 
@@ -55,15 +54,14 @@ async function fetchWithRetry<T>(
       return await fn();
     } catch (error: any) {
       lastError = error;
-      const status = error?.status || error?.error?.status;
-      const message = error?.message || error?.error?.message || "";
+      const status = error?.status || error?.error?.status || 500;
+      const message = error?.message || error?.error?.message || "Unknown error";
       
       const isRetryable = 
         status === "RESOURCE_EXHAUSTED" || 
         status === 429 || 
         status === 500 || 
         status === "INTERNAL" || 
-        status === "UNKNOWN" || 
         message.toLowerCase().includes("rpc failed") ||
         message.toLowerCase().includes("internal error");
 
@@ -154,23 +152,22 @@ const ActionCards = () => (
 // --- Background Renderer ---
 
 interface SlideBackgroundProps {
-  // Fix: Explicitly include key if environment demands it in props, though React usually handles it separately
-  key?: React.Key;
   prompt: string;
   isActive: boolean;
 }
 
-// Fix: Use React.FC to properly type the component and satisfy key propagation in maps
 const SlideBackground: React.FC<SlideBackgroundProps> = ({ prompt, isActive }) => {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [errorStatus, setErrorStatus] = useState<string | null>(null);
 
   const fetchImage = useCallback(async () => {
+    // Prevent multiple simultaneous fetches
+    if (loading) return;
+    
     setLoading(true);
     setErrorStatus(null);
     try {
-      // Use process.env.API_KEY directly as required by guidelines
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       const response = await fetchWithRetry<GenerateContentResponse>(() => 
         ai.models.generateContent({
@@ -184,14 +181,15 @@ const SlideBackground: React.FC<SlideBackgroundProps> = ({ prompt, isActive }) =
       if (part?.inlineData) {
         setImageUrl(`data:image/png;base64,${part.inlineData.data}`);
       } else {
-        throw new Error("Missing asset data.");
+        throw new Error("Missing binary asset data.");
       }
     } catch (error: any) {
+      console.error("Asset generation failed:", error);
       setErrorStatus(error?.status || error?.message || "Generation Failed");
     } finally {
       setLoading(false);
     }
-  }, [prompt]);
+  }, [prompt, loading]);
 
   useEffect(() => {
     if (isActive && !imageUrl && !loading && !errorStatus) {
@@ -219,16 +217,16 @@ const SlideBackground: React.FC<SlideBackgroundProps> = ({ prompt, isActive }) =
                 <span className="text-[10px] tracking-[0.8em] uppercase font-mono text-white/60">Rendering Narrative Space...</span>
               </div>
             )}
-            {errorStatus && isActive && (
+            {errorStatus && isActive && !loading && (
               <motion.div 
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
                 className="flex flex-col items-center gap-4 max-w-xs text-center p-8 bg-white/5 border border-white/10 backdrop-blur-xl rounded-sm"
               >
                 <AlertCircle className="w-8 h-8 text-amber-500/50 mb-2" />
                 <span className="text-[10px] tracking-widest uppercase text-white/40 font-mono mb-4">{errorStatus}</span>
                 <button 
-                  onClick={fetchImage}
+                  onClick={() => fetchImage()}
                   className="flex items-center gap-3 px-6 py-3 bg-white/10 hover:bg-white/20 transition-all text-[10px] uppercase tracking-[0.4em] font-bold border border-white/10"
                 >
                   <RefreshCcw size={14} /> RE-GENERATE ASSET
@@ -469,7 +467,7 @@ const PresentationApp = () => {
 
   return (
     <div className="relative w-full h-screen bg-[#050505] text-white overflow-hidden font-sans selection:bg-amber-500/30">
-      {/* Background Layers - React key handled at the map level for optimization */}
+      {/* Background Layers - Key ensures proper reconciliation during slide changes */}
       {slides.map((s, i) => (
         <SlideBackground key={s.id} prompt={s.bgPrompt} isActive={i === currentSlide} />
       ))}
