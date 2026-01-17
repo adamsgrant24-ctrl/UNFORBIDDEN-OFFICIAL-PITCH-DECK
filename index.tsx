@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react';
+
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { createRoot } from 'react-dom/client';
 import { 
   ChevronLeft, 
@@ -12,7 +13,8 @@ import {
   AlertCircle,
   Eye,
   Film,
-  Layers
+  Layers,
+  RefreshCcw
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
@@ -82,9 +84,9 @@ const CastingTable = () => (
     <table className="w-full text-left text-xs md:text-sm border-collapse">
       <thead>
         <tr className="border-b border-white/20 bg-white/5 uppercase tracking-widest font-mono text-[10px]">
-          <th className="p-4">Character</th>
-          <th className="p-4">Status</th>
-          <th className="p-4">Core Function</th>
+          <th className="p-4 text-white/40">Character</th>
+          <th className="p-4 text-white/40">Status</th>
+          <th className="p-4 text-white/40">Core Function</th>
         </tr>
       </thead>
       <tbody className="font-light">
@@ -150,47 +152,50 @@ const ActionCards = () => (
 
 // --- Background Renderer ---
 
+// Fixed SlideBackgroundProps by adding an optional key to satisfy TypeScript when used in lists
 interface SlideBackgroundProps {
+  key?: React.Key;
   prompt: string;
   isActive: boolean;
-  key?: React.Key;
 }
 
 const SlideBackground = ({ prompt, isActive }: SlideBackgroundProps) => {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [errorStatus, setErrorStatus] = useState<string | null>(null);
+  const fetchAttemptRef = useRef(0);
+
+  const fetchImage = useCallback(async () => {
+    setLoading(true);
+    setErrorStatus(null);
+    try {
+      const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+      const response = await fetchWithRetry<GenerateContentResponse>(() => 
+        ai.models.generateContent({
+          model: 'gemini-2.5-flash-image',
+          contents: { parts: [{ text: `High-art prestige cinematic film still, 35mm anamorphic widescreen, Kodak Vision3 color stock. ${prompt}. Architectural noir, obsidian deep blacks, turpentine amber highlights, stark clinical museum lighting, highly textured raw concrete and polished glass, prestigious film production aesthetic, deep shadows, moody atmospheric fog.` }] },
+          config: { imageConfig: { aspectRatio: "16:9" } },
+        })
+      );
+      
+      const part = response.candidates?.[0]?.content?.parts?.find(p => p.inlineData);
+      if (part?.inlineData) {
+        setImageUrl(`data:image/png;base64,${part.inlineData.data}`);
+      } else {
+        throw new Error("Missing asset data.");
+      }
+    } catch (error: any) {
+      setErrorStatus(error?.status || error?.message || "Generation Failed");
+    } finally {
+      setLoading(false);
+    }
+  }, [prompt]);
 
   useEffect(() => {
     if (isActive && !imageUrl && !loading && !errorStatus) {
-      const fetchImage = async () => {
-        setLoading(true);
-        setErrorStatus(null);
-        try {
-          const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-          const response = await fetchWithRetry<GenerateContentResponse>(() => 
-            ai.models.generateContent({
-              model: 'gemini-2.5-flash-image',
-              contents: { parts: [{ text: `High-art prestige cinematic film still, 35mm anamorphic widescreen, Kodak Vision3 color stock. ${prompt}. Architectural noir, obsidian deep blacks, turpentine amber highlights, stark clinical museum lighting, highly textured raw concrete and polished glass, prestigious film production aesthetic, deep shadows, moody atmospheric fog.` }] },
-              config: { imageConfig: { aspectRatio: "16:9" } },
-            })
-          );
-          
-          const part = response.candidates?.[0]?.content?.parts?.find(p => p.inlineData);
-          if (part?.inlineData) {
-            setImageUrl(`data:image/png;base64,${part.inlineData.data}`);
-          } else {
-            throw new Error("Missing asset data.");
-          }
-        } catch (error: any) {
-          setErrorStatus(error?.status || error?.message || "Generation Failed");
-        } finally {
-          setLoading(false);
-        }
-      };
       fetchImage();
     }
-  }, [isActive, prompt, imageUrl, loading, errorStatus]);
+  }, [isActive, imageUrl, loading, errorStatus, fetchImage]);
 
   return (
     <div className="absolute inset-0 overflow-hidden z-0 bg-black">
@@ -211,11 +216,21 @@ const SlideBackground = ({ prompt, isActive }: SlideBackgroundProps) => {
                 <span className="text-[10px] tracking-[0.6em] uppercase font-mono">Developing Visual Language...</span>
               </div>
             )}
-            {errorStatus && (
-              <div className="flex flex-col items-center gap-2 max-w-xs text-center p-6">
-                <AlertCircle className="w-6 h-6 text-amber-500/30 mb-2" />
-                <span className="text-[10px] tracking-widest uppercase text-white/20 font-mono">{errorStatus}</span>
-              </div>
+            {errorStatus && isActive && (
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="flex flex-col items-center gap-4 max-w-xs text-center p-6 bg-white/5 border border-white/10 backdrop-blur-md rounded-sm"
+              >
+                <AlertCircle className="w-6 h-6 text-amber-500/50 mb-2" />
+                <span className="text-[10px] tracking-widest uppercase text-white/40 font-mono mb-4">{errorStatus}</span>
+                <button 
+                  onClick={fetchImage}
+                  className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 transition-all text-[10px] uppercase tracking-widest font-bold"
+                >
+                  <RefreshCcw size={12} /> Retry Generation
+                </button>
+              </motion.div>
             )}
           </div>
         )}
@@ -445,6 +460,7 @@ const PresentationApp = () => {
   };
 
   const currentSlideData = slides[currentSlide];
+  const progressPercent = ((currentSlide + 1) / slides.length) * 100;
 
   return (
     <div className="relative w-full h-screen bg-black text-white overflow-hidden font-sans selection:bg-amber-500/30">
@@ -480,9 +496,9 @@ const PresentationApp = () => {
         <AnimatePresence mode="wait">
           <motion.div
             key={currentSlide}
-            initial={{ opacity: 0, y: 15, scale: 0.99, filter: 'brightness(1.5)' }}
+            initial={{ opacity: 0, y: 15, scale: 0.99, filter: 'brightness(2)' }}
             animate={{ opacity: 1, y: 0, scale: 1, filter: 'brightness(1)' }}
-            exit={{ opacity: 0, y: -15, scale: 1.01 }}
+            exit={{ opacity: 0, y: -15, scale: 1.01, filter: 'brightness(0.5)' }}
             transition={{ duration: 0.9, ease: [0.19, 1, 0.22, 1] }}
             className="w-full max-w-7xl pt-16"
           >
@@ -511,8 +527,23 @@ const PresentationApp = () => {
         </AnimatePresence>
       </div>
 
+      {/* Film Strip Progress Bar */}
+      <div className="absolute bottom-0 left-0 w-full h-1 bg-white/5 z-50">
+        <motion.div 
+          className="h-full bg-white/40 shadow-[0_0_10px_white]"
+          initial={{ width: 0 }}
+          animate={{ width: `${progressPercent}%` }}
+          transition={{ duration: 0.5 }}
+        />
+        <div className="absolute top-0 left-0 w-full h-full flex justify-around pointer-events-none opacity-20">
+          {slides.map((_, i) => (
+            <div key={i} className="w-px h-full bg-black" />
+          ))}
+        </div>
+      </div>
+
       {/* Presentation Footer Controls */}
-      <div className="absolute bottom-0 left-0 w-full p-8 md:p-16 flex justify-between items-end z-50">
+      <div className="absolute bottom-4 left-0 w-full p-8 md:p-16 flex justify-between items-end z-50">
         <div className="flex gap-6 items-center bg-white/5 backdrop-blur-3xl px-10 py-5 rounded-full border border-white/5 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.5)]">
           {slides.map((_, i) => (
             <button
