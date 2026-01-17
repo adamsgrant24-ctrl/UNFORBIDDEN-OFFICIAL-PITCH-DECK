@@ -8,7 +8,7 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          'vendor-ui': ['framer-motion', 'lucide-react'],
+          'vendor-ui': ['framer-motion', 'lucide-react', 'react', 'react-dom'],
           'vendor-ai': ['@google/genai'],
         },
       },
