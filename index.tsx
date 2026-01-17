@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { createRoot } from 'react-dom/client';
 import { 
   ChevronLeft, 
@@ -154,13 +154,14 @@ const ActionCards = () => (
 // --- Background Renderer ---
 
 interface SlideBackgroundProps {
-  // Fix: Explicitly include key in props to satisfy TypeScript validation in list rendering on line 469
-  key?: string | number;
+  // Fix: Explicitly include key if environment demands it in props, though React usually handles it separately
+  key?: React.Key;
   prompt: string;
   isActive: boolean;
 }
 
-const SlideBackground = ({ prompt, isActive }: SlideBackgroundProps) => {
+// Fix: Use React.FC to properly type the component and satisfy key propagation in maps
+const SlideBackground: React.FC<SlideBackgroundProps> = ({ prompt, isActive }) => {
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [errorStatus, setErrorStatus] = useState<string | null>(null);
@@ -169,6 +170,7 @@ const SlideBackground = ({ prompt, isActive }: SlideBackgroundProps) => {
     setLoading(true);
     setErrorStatus(null);
     try {
+      // Use process.env.API_KEY directly as required by guidelines
       const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
       const response = await fetchWithRetry<GenerateContentResponse>(() => 
         ai.models.generateContent({
@@ -467,7 +469,7 @@ const PresentationApp = () => {
 
   return (
     <div className="relative w-full h-screen bg-[#050505] text-white overflow-hidden font-sans selection:bg-amber-500/30">
-      {/* Background Layers - Key ensures proper reconciliation during slide changes */}
+      {/* Background Layers - React key handled at the map level for optimization */}
       {slides.map((s, i) => (
         <SlideBackground key={s.id} prompt={s.bgPrompt} isActive={i === currentSlide} />
       ))}
