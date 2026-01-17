@@ -186,7 +186,8 @@ const SlideBackground: React.FC<SlideBackgroundProps> = ({ prompt, isActive }) =
       }
     } catch (error: any) {
       console.error("Asset generation failed:", error);
-      setErrorStatus(error?.status || error?.message || "Generation Failed");
+      const status = error?.status || error?.error?.status || "Error";
+      setErrorStatus(`${status}: ${error?.message || "Generation Failed"}`);
     } finally {
       setLoading(false);
     }
@@ -225,7 +226,7 @@ const SlideBackground: React.FC<SlideBackgroundProps> = ({ prompt, isActive }) =
                 className="flex flex-col items-center gap-4 max-w-xs text-center p-8 bg-white/5 border border-white/10 backdrop-blur-xl rounded-sm"
               >
                 <AlertCircle className="w-8 h-8 text-amber-500/50 mb-2" />
-                <span className="text-[10px] tracking-widest uppercase text-white/40 font-mono mb-4">{errorStatus}</span>
+                <span className="text-[10px] tracking-widest uppercase text-white/40 font-mono mb-4 break-words px-4">{errorStatus}</span>
                 <button 
                   onClick={() => fetchImage()}
                   className="flex items-center gap-3 px-6 py-3 bg-white/10 hover:bg-white/20 transition-all text-[10px] uppercase tracking-[0.4em] font-bold border border-white/10"
